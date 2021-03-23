@@ -14,12 +14,10 @@ import java.util.List;
 public class PatientController {
     final PatientRepository patientRepository;
     final DossierRepository dossierRepository;
-    final LocationRepository locationRepository;
 
-    public PatientController(PatientRepository patientRepository, DossierRepository dossierRepository, LocationRepository locationRepository) {
+    public PatientController(PatientRepository patientRepository, DossierRepository dossierRepository) {
         this.patientRepository = patientRepository;
         this.dossierRepository = dossierRepository;
-        this.locationRepository = locationRepository;
     }
 
     @RequestMapping(value = "/patients", method = RequestMethod.GET)
