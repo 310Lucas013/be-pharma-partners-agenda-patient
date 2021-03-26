@@ -13,11 +13,6 @@ public class EventReceiver {
 
     private Logger log = LoggerFactory.getLogger(EventReceiver.class);
 
-    @Bean
-    public Jackson2JsonMessageConverter converter() {
-        return new Jackson2JsonMessageConverter();
-    }
-
     @RabbitListener(queues = "${rabbitmq.queue}")
     public void receive(Message event) {
         System.out.println("received the event!");
