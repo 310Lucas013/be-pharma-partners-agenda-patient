@@ -11,7 +11,7 @@ public class Dossier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column
+    @Column(columnDefinition = "nvarchar(max)")
     private String information;
     @OneToOne(mappedBy = "dossier")
     private Patient patient;
@@ -20,9 +20,7 @@ public class Dossier {
 
     }
 
-    public Dossier(Long id, String information, Patient patient) {
-        this.id = id;
+    public Dossier(String information) {
         this.information = information;
-        this.patient = patient;
     }
 }
