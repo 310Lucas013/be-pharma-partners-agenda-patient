@@ -1,12 +1,9 @@
 package com.pharma.patientrecords.models;
 
-import lombok.Data;
-
 import javax.persistence.*;
 
 @Entity
 @Table
-@Data
 public class Dossier {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,5 +19,29 @@ public class Dossier {
 
     public Dossier(String information) {
         this.information = information;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public String getInformation() {
+        return information;
+    }
+
+    public void setInformation(String information) {
+        this.information = information;
+    }
+
+    public Patient getPatient() {
+        return patient;
+    }
+
+    public void setPatient(Patient patient) {
+        this.patient = patient;
     }
 }
