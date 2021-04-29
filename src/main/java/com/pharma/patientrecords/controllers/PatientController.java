@@ -51,6 +51,10 @@ public class PatientController {
         Dossier dossier = new Dossier(patientDto.getDossierInformation());
         Dossier d = this.dossierRepository.save(dossier);
         p.setDossier(d);
+        // Save patient and get ID.
+        // Set patient id in Create locationMessage.
+        // Save location and get the id.
+        // Send RabbitMQ Message from Location to Patient with location and patient id.
         CreateLocationMessage clm = new CreateLocationMessage();
         clm.setStreetName(patientDto.getStreetName());
         clm.setHouseNumber(patientDto.getHouseNumber());
@@ -70,6 +74,7 @@ public class PatientController {
 
     public long saveLocation(CreateLocationMessage clm) {
         String result = gson.toJson(clm);
+        System.out.println(result);
         rabbitTemplate.convertAndSend(exchange, "create-location", result);
         System.out.println("test");
         return 1;
