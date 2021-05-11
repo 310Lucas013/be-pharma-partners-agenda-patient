@@ -1,8 +1,6 @@
 package com.pharma.patientrecords.messaging;
 
-import java.io.Serializable;
-
-public class CreateLocationMessage implements Serializable {
+public class CreateLocationMessage {
     private String streetName;
     private String houseNumber;
     private String zipCode;

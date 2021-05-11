@@ -1,8 +1,12 @@
 package com.pharma.patientrecords.controllers;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.pharma.patientrecords.messaging.CreateLocationMessage;
 import com.pharma.patientrecords.models.Dossier;
+import com.pharma.patientrecords.models.HibernateProxyTypeAdapter;
 import com.pharma.patientrecords.models.Patient;
 import com.pharma.patientrecords.models.dto.PatientDto;
 import com.pharma.patientrecords.models.enums.Gender;
@@ -14,6 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -31,11 +37,11 @@ public class PatientController {
     private String routingkey;
 
     public PatientController(PatientRepository patientRepository, DossierRepository dossierRepository,
-                             AmqpTemplate rabbitTemplate, Gson gson) {
+                             AmqpTemplate rabbitTemplate) {
         this.patientRepository = patientRepository;
         this.dossierRepository = dossierRepository;
         this.rabbitTemplate = rabbitTemplate;
-        this.gson = gson;
+        this.gson = initiateGson();
 
     }
 
@@ -75,10 +81,38 @@ public class PatientController {
     public long saveLocation(CreateLocationMessage clm) {
         String result = gson.toJson(clm);
         System.out.println(result);
-        rabbitTemplate.convertAndSend(exchange, "create-location", result);
+        rabbitTemplate.convertAndSend(exchange, "create-location", clm);
         System.out.println("test");
         return 1;
     }
+
+
+    private Gson initiateGson() {
+        GsonBuilder b = new GsonBuilder();
+        b.registerTypeAdapterFactory(HibernateProxyTypeAdapter.FACTORY)
+                .excludeFieldsWithModifiers(Modifier.TRANSIENT)
+                .setExclusionStrategies(new ExclusionStrategy() {
+                    @Override
+                    public boolean shouldSkipField(FieldAttributes f) {
+                        boolean exclude = false;
+                        try {
+                            exclude = EXCLUDE.contains(f.getName());
+                        } catch (Exception ignore) {
+                        }
+                        return exclude;
+                    }
+
+                    @Override
+                    public boolean shouldSkipClass(Class<?> clazz) {
+                        return false;
+                    }
+                });
+        return b.create();
+    }
+
+    private static final List<String> EXCLUDE = new ArrayList<>() {{
+        add("patient");
+    }};
 
 
 }
