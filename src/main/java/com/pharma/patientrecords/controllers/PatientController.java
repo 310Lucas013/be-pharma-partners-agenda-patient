@@ -114,5 +114,9 @@ public class PatientController {
         add("patient");
     }};
 
+    @GetMapping()
+    public ResponseEntity<?> findByUs() {
+        return new ResponseEntity<>(patientRepository.findAll(), HttpStatus.OK);
+    }
 
 }
