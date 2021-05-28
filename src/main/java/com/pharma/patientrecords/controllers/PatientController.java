@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping(value = "/patients")
@@ -81,6 +82,16 @@ public class PatientController {
     public ResponseEntity<?> getAll() {
         return new ResponseEntity<>(patientRepository.findAll(), HttpStatus.OK);
     }
+
+    @GetMapping(value = "/{id}")
+    public ResponseEntity<?> getById(@PathVariable("id") long id)  {
+        Optional<Patient> patient = patientRepository.findById(id);
+        if(patient.isEmpty()){
+            return new ResponseEntity<>(gson.toJson(new Patient()), HttpStatus.OK);
+        }
+        return new ResponseEntity<>(gson.toJson(patient.get()), HttpStatus.OK);
+    }
+
 
     public long saveLocation(CreateLocationMessage clm) {
         String result = gson.toJson(clm);
