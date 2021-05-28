@@ -9,7 +9,6 @@ import com.pharma.patientrecords.models.Dossier;
 import com.pharma.patientrecords.models.HibernateProxyTypeAdapter;
 import com.pharma.patientrecords.models.Patient;
 import com.pharma.patientrecords.models.dto.PatientDto;
-import com.pharma.patientrecords.models.enums.Gender;
 import com.pharma.patientrecords.repositories.DossierRepository;
 import com.pharma.patientrecords.repositories.PatientRepository;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -43,6 +41,12 @@ public class PatientController {
         this.rabbitTemplate = rabbitTemplate;
         this.gson = initiateGson();
 
+    }
+
+    @RequestMapping("/{name}")
+    public ArrayList<Patient> getPatientByName(@PathVariable(value="name") String name)  {
+        return patientRepository.findTop5ByFirstNameContainsOrLastNameContains(name, name);
+        // return new ResponseEntity<>(this.patientRepository.findAllByFirstNameOrderByFirstName(name), HttpStatus.OK);
     }
 
     @PostMapping()
@@ -73,7 +77,7 @@ public class PatientController {
         return new ResponseEntity<>(patientRepository.save(p), HttpStatus.CREATED);
     }
 
-    @GetMapping()
+    @GetMapping(path="/getAll")
     public ResponseEntity<?> getAll() {
         return new ResponseEntity<>(patientRepository.findAll(), HttpStatus.OK);
     }
@@ -85,8 +89,7 @@ public class PatientController {
         System.out.println("test");
         return 1;
     }
-
-
+    
     private Gson initiateGson() {
         GsonBuilder b = new GsonBuilder();
         b.registerTypeAdapterFactory(HibernateProxyTypeAdapter.FACTORY)
