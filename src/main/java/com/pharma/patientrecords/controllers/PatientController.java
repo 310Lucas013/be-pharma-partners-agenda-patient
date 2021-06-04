@@ -44,8 +44,9 @@ public class PatientController {
 
     }
 
-    @RequestMapping("/{name}")
+    @GetMapping("findByName/{name}")
     public ArrayList<Patient> getPatientByName(@PathVariable(value="name") String name)  {
+        System.out.println(name);
         return patientRepository.findTop5ByFirstNameContainsOrLastNameContains(name, name);
         // return new ResponseEntity<>(this.patientRepository.findAllByFirstNameOrderByFirstName(name), HttpStatus.OK);
     }
