@@ -9,5 +9,5 @@ import java.util.ArrayList;
 
 @Repository
 public interface PatientRepository extends JpaRepository<Patient, Long> {
-    ArrayList<Patient>  findTop5ByFirstNameContainsOrLastNameContains(String firstname, String lastname);
+    ArrayList<Patient> findTop5ByFirstNameContainsOrLastNameContains(String firstname, String lastname);
 }
