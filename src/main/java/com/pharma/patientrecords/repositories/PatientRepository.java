@@ -6,8 +6,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.ArrayList;
+import java.util.List;
 
 @Repository
 public interface PatientRepository extends JpaRepository<Patient, Long> {
-    ArrayList<Patient> findTop5ByFirstNameContainsOrLastNameContains(String firstname, String lastname);
+    List<Patient> findTop5ByFirstNameContainsOrLastNameContains(String firstname, String lastname);
+    List<Patient> findTop5ByFirstNameContainsAndLastNameContains(String firstname, String lastname);
+
 }

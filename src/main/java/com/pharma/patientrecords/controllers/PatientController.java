@@ -18,9 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping(value = "/patients")
@@ -45,10 +43,47 @@ public class PatientController {
     }
 
     @GetMapping("findByName/{name}")
-    public ArrayList<Patient> getPatientByName(@PathVariable(value="name") String name)  {
-        System.out.println(name);
+    public ResponseEntity<?> getPatientByName(@PathVariable(value="name") String name)  {
+        List<Patient> patients = null;
+        if (name.contains(" ")) {
+            patients = getPatientsByMultipleInput(name);
+        } else {
+            patients = getPatientBySingleInput(name);
+        }
+        String result = gson.toJson(patients);
+        return new ResponseEntity<String>(result, HttpStatus.OK);
+    }
+
+    private List<Patient> getPatientsByMultipleInput(String name) {
+        List<Patient> patients = null;
+        String[] names = name.split(" ");
+        String firstName = names[0];
+        int lastNameNumber = names.length - 1;
+        String lastName = names[lastNameNumber];
+        if (firstName.equals("")) {
+            // firstname equals empty string
+            if (lastName.equals("")) {
+                // both have empty string
+                return patients;
+            } else {
+                // only firstname is empty string
+                patients = getPatientBySingleInput(lastName);
+            }
+        } else if (lastName.equals("")) {
+            // only lastname is empty string
+            patients = getPatientBySingleInput(firstName);
+        } else {
+            // firstname and lastname are both NOT empty string
+            List<Patient> tempPatients = patientRepository.findTop5ByFirstNameContainsAndLastNameContains(firstName, lastName);
+            tempPatients.addAll(patientRepository.findTop5ByFirstNameContainsAndLastNameContains(lastName, firstName));
+            patients = new ArrayList<>(
+                    new HashSet<>(tempPatients));
+        }
+        return patients;
+    }
+
+    private List<Patient> getPatientBySingleInput(String name) {
         return patientRepository.findTop5ByFirstNameContainsOrLastNameContains(name, name);
-        // return new ResponseEntity<>(this.patientRepository.findAllByFirstNameOrderByFirstName(name), HttpStatus.OK);
     }
 
     @PostMapping()
