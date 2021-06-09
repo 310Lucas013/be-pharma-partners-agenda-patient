@@ -18,9 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping(value = "/patients")
@@ -45,10 +43,12 @@ public class PatientController {
     }
 
     @GetMapping("findByName/{name}")
-    public ArrayList<Patient> getPatientByName(@PathVariable(value="name") String name)  {
-        System.out.println(name);
-        return patientRepository.findTop5ByFirstNameContainsOrLastNameContains(name, name);
-        // return new ResponseEntity<>(this.patientRepository.findAllByFirstNameOrderByFirstName(name), HttpStatus.OK);
+    public ResponseEntity<?> getPatientByName(@PathVariable(value="name") String name)  {
+
+        Collection<String> nameList = Arrays.asList(name.split(" "));
+        System.out.println(nameList);
+
+        return new ResponseEntity<>(gson.toJson(patientRepository.findTop5ByFirstNameIn(nameList)), HttpStatus.OK);
     }
 
     @PostMapping()
