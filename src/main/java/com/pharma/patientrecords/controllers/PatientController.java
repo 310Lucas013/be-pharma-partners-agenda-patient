@@ -11,6 +11,8 @@ import com.pharma.patientrecords.models.Patient;
 import com.pharma.patientrecords.models.dto.PatientDto;
 import com.pharma.patientrecords.repositories.DossierRepository;
 import com.pharma.patientrecords.repositories.PatientRepository;
+import com.pharma.patientrecords.service.DossierService;
+import com.pharma.patientrecords.service.PatientService;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -23,8 +25,8 @@ import java.util.*;
 @RestController
 @RequestMapping(value = "/patients")
 public class PatientController {
-    private final PatientRepository patientRepository;
-    private final DossierRepository dossierRepository;
+    private final PatientService patientService;
+    private final DossierService dossierService;
     private final AmqpTemplate rabbitTemplate;
     private final Gson gson;
 
@@ -33,10 +35,10 @@ public class PatientController {
     @Value("${rabbitmq.routingKey}")
     private String routingkey;
 
-    public PatientController(PatientRepository patientRepository, DossierRepository dossierRepository,
+    public PatientController(PatientService patientService, DossierService dossierService,
                              AmqpTemplate rabbitTemplate) {
-        this.patientRepository = patientRepository;
-        this.dossierRepository = dossierRepository;
+        this.patientService = patientService;
+        this.dossierService = dossierService;
         this.rabbitTemplate = rabbitTemplate;
         this.gson = initiateGson();
 
@@ -74,8 +76,8 @@ public class PatientController {
             patients = getPatientBySingleInput(firstName);
         } else {
             // firstname and lastname are both NOT empty string
-            List<Patient> tempPatients = patientRepository.findTop5ByFirstNameContainsAndLastNameContains(firstName, lastName);
-            tempPatients.addAll(patientRepository.findTop5ByFirstNameContainsAndLastNameContains(lastName, firstName));
+            List<Patient> tempPatients = patientService.findTop5ByFirstNameContainsAndLastNameContains(firstName, lastName);
+            tempPatients.addAll(patientService.findTop5ByFirstNameContainsAndLastNameContains(lastName, firstName));
             patients = new ArrayList<>(
                     new HashSet<>(tempPatients));
         }
@@ -83,7 +85,7 @@ public class PatientController {
     }
 
     private List<Patient> getPatientBySingleInput(String name) {
-        return patientRepository.findTop5ByFirstNameContainsOrLastNameContains(name, name);
+        return patientService.findTop5ByFirstNameContainsOrLastNameContains(name, name);
     }
 
     @PostMapping()
@@ -96,7 +98,7 @@ public class PatientController {
         p.setDateOfBirth(patientDto.getDateOfBirth());
         p.setPhoneNumber(patientDto.getPhoneNumber());
         Dossier dossier = new Dossier(patientDto.getDossierInformation());
-        Dossier d = this.dossierRepository.save(dossier);
+        Dossier d = this.dossierService.save(dossier);
         p.setDossier(d);
         // Save patient and get ID.
         // Set patient id in Create locationMessage.
@@ -111,17 +113,17 @@ public class PatientController {
         long locationId = this.saveLocation(clm);
         System.out.println(locationId);
         p.setLocationId(locationId);
-        return new ResponseEntity<>(patientRepository.save(p), HttpStatus.CREATED);
+        return new ResponseEntity<>(patientService.save(p), HttpStatus.CREATED);
     }
 
     @GetMapping(path="/getAll")
     public ResponseEntity<?> getAll() {
-        return new ResponseEntity<>(patientRepository.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(patientService.findAll(), HttpStatus.OK);
     }
 
     @GetMapping(value = "/{id}")
     public ResponseEntity<?> getById(@PathVariable("id") long id)  {
-        Optional<Patient> patient = patientRepository.findById(id);
+        Optional<Patient> patient = patientService.findById(id);
         if(patient.isEmpty()){
             return new ResponseEntity<>(gson.toJson(new Patient()), HttpStatus.OK);
         }
@@ -166,7 +168,7 @@ public class PatientController {
 
     @GetMapping()
     public ResponseEntity<?> findByUs() {
-        return new ResponseEntity<>(patientRepository.findAll(), HttpStatus.OK);
+        return new ResponseEntity<>(patientService.findAll(), HttpStatus.OK);
     }
 
 }
