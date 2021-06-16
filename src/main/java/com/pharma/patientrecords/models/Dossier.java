@@ -1,5 +1,7 @@
 package com.pharma.patientrecords.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
 import javax.persistence.*;
 
 @Entity
@@ -10,6 +12,7 @@ public class Dossier {
     private Long id;
     @Column(columnDefinition = "nvarchar(max)")
     private String information;
+    @JsonIgnore
     @OneToOne(mappedBy = "dossier")
     private Patient patient;
 

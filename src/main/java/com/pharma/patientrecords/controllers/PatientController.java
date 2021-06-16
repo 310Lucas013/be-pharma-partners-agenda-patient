@@ -9,7 +9,6 @@ import com.pharma.patientrecords.models.Dossier;
 import com.pharma.patientrecords.models.HibernateProxyTypeAdapter;
 import com.pharma.patientrecords.models.Patient;
 import com.pharma.patientrecords.models.dto.PatientDto;
-import com.pharma.patientrecords.models.enums.Gender;
 import com.pharma.patientrecords.repositories.DossierRepository;
 import com.pharma.patientrecords.repositories.PatientRepository;
 import org.springframework.amqp.core.AmqpTemplate;
@@ -19,10 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping(value = "/patients")
@@ -44,6 +40,50 @@ public class PatientController {
         this.rabbitTemplate = rabbitTemplate;
         this.gson = initiateGson();
 
+    }
+
+    @GetMapping("findByName/{name}")
+    public ResponseEntity<?> getPatientByName(@PathVariable(value="name") String name)  {
+        List<Patient> patients = null;
+        if (name.contains(" ")) {
+            patients = getPatientsByMultipleInput(name);
+        } else {
+            patients = getPatientBySingleInput(name);
+        }
+        String result = gson.toJson(patients);
+        return new ResponseEntity<String>(result, HttpStatus.OK);
+    }
+
+    private List<Patient> getPatientsByMultipleInput(String name) {
+        List<Patient> patients = null;
+        String[] names = name.split(" ");
+        String firstName = names[0];
+        int lastNameNumber = names.length - 1;
+        String lastName = names[lastNameNumber];
+        if (firstName.equals("")) {
+            // firstname equals empty string
+            if (lastName.equals("")) {
+                // both have empty string
+                return patients;
+            } else {
+                // only firstname is empty string
+                patients = getPatientBySingleInput(lastName);
+            }
+        } else if (lastName.equals("")) {
+            // only lastname is empty string
+            patients = getPatientBySingleInput(firstName);
+        } else {
+            // firstname and lastname are both NOT empty string
+            List<Patient> tempPatients = patientRepository.findTop5ByFirstNameContainsAndLastNameContains(firstName, lastName);
+            tempPatients.addAll(patientRepository.findTop5ByFirstNameContainsAndLastNameContains(lastName, firstName));
+            patients = new ArrayList<>(
+                    new HashSet<>(tempPatients));
+        }
+        return patients;
+    }
+
+    private List<Patient> getPatientBySingleInput(String name) {
+        return patientRepository.findTop5ByFirstNameContainsOrLastNameContains(name, name);
     }
 
     @PostMapping()
@@ -74,7 +114,7 @@ public class PatientController {
         return new ResponseEntity<>(patientRepository.save(p), HttpStatus.CREATED);
     }
 
-    @GetMapping()
+    @GetMapping(path="/getAll")
     public ResponseEntity<?> getAll() {
         return new ResponseEntity<>(patientRepository.findAll(), HttpStatus.OK);
     }
@@ -96,8 +136,7 @@ public class PatientController {
         System.out.println("test");
         return 1;
     }
-
-
+    
     private Gson initiateGson() {
         GsonBuilder b = new GsonBuilder();
         b.registerTypeAdapterFactory(HibernateProxyTypeAdapter.FACTORY)
@@ -125,5 +164,9 @@ public class PatientController {
         add("patient");
     }};
 
+    @GetMapping()
+    public ResponseEntity<?> findByUs() {
+        return new ResponseEntity<>(patientRepository.findAll(), HttpStatus.OK);
+    }
 
 }
